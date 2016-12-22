@@ -1,0 +1,70 @@
+// Information for all projects
+
+// The default tasks for all projects
+defaultTasks 'removeOldReleases', 'build', 'createReleaseJar', 'install'
+
+allprojects
+{
+    version = "2.7.2 for Forge 1.7.10 v7"
+    group = "com.khorn.terraincontrol"
+
+    // Give this a value in a child project to change the name in your IDE
+    // Otherwise it will use the default name. In the case of the project
+    // 'platforms:bukkit', the default name is invalid because it contains a slash
+    ext.ideProjectName = null
+
+    // Version of the shadow plugin
+    ext.shadowVersion = '1.0.2'
+}
+
+// Information for all subprojects
+// (common, forge and bukkit, but not this file)
+subprojects
+{   task ->
+
+    task.plugins.withType(org.gradle.api.plugins.JavaBasePlugin)
+    {
+        // We're still on Java 6
+        sourceCompatibility = '1.6'
+
+        // Generate Eclipse config files when using "gradle eclipse"
+        task.apply plugin: 'eclipse'
+
+        // Generate IntelliJ IDEA config files
+        task.apply plugin: 'idea'
+
+        // Change project name in Eclipse
+        // See comment above about the ideProjectName
+        task.eclipse.project.file.whenMerged
+        {   project ->
+
+            if (task.project.ext.ideProjectName != null)
+            {
+                project.name = task.project.ext.ideProjectName
+            }
+        }
+
+        // Since we're renaming projects, we need to rename the
+        // dependency 'common' to 'TerrainControl-Common'
+        task.eclipse.classpath.file.whenMerged
+        {   classpath ->
+            classpath.entries.findAll{ entry -> entry.path == "/common" }*.path = "/TerrainControl-Common"
+        }
+
+    }
+
+    // Generate a pom.xml, upload to local Maven repository
+    apply plugin: 'maven'
+}
+
+task removeOldReleases <<
+{
+    allprojects
+    {
+        File distributionsFolder = new File(project.buildDir, "distributions")
+        if (distributionsFolder.exists())
+        {
+            distributionsFolder.deleteDir()
+        }
+    }
+}

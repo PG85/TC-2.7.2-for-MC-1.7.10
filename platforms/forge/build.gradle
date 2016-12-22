@@ -1,0 +1,78 @@
+// Build script for Terrain Control for Forge
+
+buildscript
+{
+    repositories
+    {
+        mavenCentral()
+        mavenLocal()
+        maven
+        {
+            url = "http://files.minecraftforge.net/maven"
+        }
+        maven
+        {
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+    }
+    dependencies
+    {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+    }
+}
+
+apply plugin: 'forge'
+
+// Project properties
+archivesBaseName = "terraincontrol-forge"
+description = "TerrainControl for Minecraft Forge"
+ext.ideProjectName = "TerrainControl-Forge"
+ext.forgeVersion = "1.7.10-10.13.0.1160"
+minecraft.version = ext.forgeVersion
+
+repositories
+{
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies
+{
+    compile project(':common')
+    compile 'org.apache.logging.log4j:log4j-api:2.0-beta9'
+    compile 'io.netty:netty-all:4.0.10.Final'
+}
+
+// Replace text in mcmod.info
+processResources
+{
+    // This will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    // Replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs)
+    {
+        include 'mcmod.info'
+
+        // Replace version and mcversion
+        expand 'version': project.version, 'mcversion': project.minecraft.version
+    }
+
+    // Copy everything else, that's not the mcmod.info
+    from(sourceSets.main.resources.srcDirs)
+    {
+        exclude 'mcmod.info'
+    }
+}
+
+// Include all Terrain Control files in the jar
+jar
+{
+    destinationDir = new File(project.buildDir, "distributions")
+    classifier = ''
+    from
+    {
+        project(":common").sourceSets.main.output.files
+    }
+}
